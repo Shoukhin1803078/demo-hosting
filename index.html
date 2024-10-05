@@ -1,0 +1,4433 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f0f4f8;
+            --text-color: #333;
+            --sidebar-width: 250px;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .bot-message {
+            background-color: #e6f2ff;
+            align-self: flex-start;
+        }
+        
+        .user-message {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            text-align: right;
+        }
+        
+        #typing-indicator {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+        }
+        
+        #send-button {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #3a7abd;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Projects</a></li>
+                    <li><a href="#">Documents</a></li>
+                    <li><a href="#">Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">JBC is typing...</div>
+                <div id="user-input-container">
+                    <input type="text" id="user-input" placeholder="Type your message here...">
+                    <button id="send-button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages <= new_message
+    chat_messages.scrollTop = chat_messages.scrollHeight
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        # Create a Blob from the response and trigger download
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- #--------------------------change attractive ui---------------------------------------- -->
+<!-- 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f0f4f8;
+            --accent-color: #ff6b6b;
+            --text-color: #333;
+            --sidebar-width: 280px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #ff8f8f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            background-color: #ffffff;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background-color: #fafafa;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .bot-message {
+            background-color: #e6f2ff;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            align-self: flex-end;
+        }
+        
+        #send-button:hover {
+            background-color: #3a7abd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">JBC is typing...</div>
+                <div id="user-input-container">
+                    <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                    <button id="send-button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages <= new_message
+    chat_messages.scrollTop = chat_messages.scrollHeight
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+<!-- ----------------------------- attractive UI----------------------------------- -->
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ecf0f1;
+            --user-msg-bg: #2ecc71;
+            --bot-msg-bg: #3498db;
+        }
+        
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            background-color: #ffffff;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: white;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #ccc;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            min-height: 50px;
+            resize: vertical;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div id="user-input-container">
+                    <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                    <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages <= new_message
+    chat_messages.scrollTop = chat_messages.scrollHeight
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ecf0f1;
+            --user-msg-bg: #2ecc71;
+            --bot-msg-bg: #3498db;
+            --input-area-height: 100px;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            overflow: hidden;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: white;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            background-color: white;
+            padding: 15px;
+            border-top: 1px solid #ccc;
+            height: var(--input-area-height);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #ccc;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html>
+
+
+ -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ecf0f1;
+            --user-msg-bg: #2ecc71;
+            --bot-msg-bg: #3498db;
+            --input-area-height: 100px;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            overflow: hidden;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: white;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            background-color: white;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            height: var(--input-area-height);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> 
+
+
+
+
+ -->
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ecf0f1;
+            --user-msg-bg: #e1f5fe;  /* Light blue for user messages */
+            --bot-msg-bg: #f1f8e9;   /* Light green for bot messages */
+            --input-area-height: 100px;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            overflow: hidden;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: #33691e;  /* Dark green text for bot messages */
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: #01579b;  /* Dark blue text for user messages */
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            background-color: white;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            height: var(--input-area-height);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ecf0f1;
+            --user-msg-bg: #e1f5fe;
+            --bot-msg-bg: #f1f8e9;
+            --input-area-height: 100px;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            overflow: hidden;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: #3716ae;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: #01579b;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-top: 1px solid #d0d0d0;
+            height: var(--input-area-height);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #c0c0c0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ecf0f1;
+            --user-msg-bg: #e1f5fe;
+            --bot-msg-bg: #f1f8e9;
+            --input-area-height: 100px;
+            --input-box-color: #2980b9;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            overflow: hidden;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: #33691e;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: #01579b;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background-color: var(--input-box-color);
+            padding: 15px;
+            border-top: 1px solid #34637a;
+            height: var(--input-area-height);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #4087b9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            background-color: #ffffff;
+            color: #eaf3fc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        #user-input::placeholder {
+            color: #7f8c8d;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: #1abc9c;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        #send-button:hover {
+            background-color: #16a085;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ecf0f1;
+            --user-msg-bg: #e1f5fe;
+            --bot-msg-bg: #f1f8e9;
+            --input-area-height: 100px;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            overflow: hidden;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            background-color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: #33691e;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: #01579b;
+            align-self: flex-end;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background-color: white;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            height: var(--input-area-height);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            background-color: #ffffff;
+            color: #2c3e50;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #user-input::placeholder {
+            color: #7f8c8d;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: #2980b9;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ffffff;
+            --user-msg-bg: #f7f7f8;
+            --bot-msg-bg: #ffffff;
+            --input-area-height: 100px;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--chat-bg);
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 20px;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: #000000;
+            align-self: flex-start;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: #000000;
+            align-self: flex-end;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background-color: #f7f7f8;
+            padding: 15px;
+            border-top: 1px solid #e5e5e5;
+            height: var(--input-area-height);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        #user-input::placeholder {
+            color: #999999;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #999999;
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.appendChild(new_message)
+    chat_messages.scrollTop = chat_messages.scrollHeight
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBC Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ffffff;
+            --user-msg-bg: #e6f3ff;
+            --bot-msg-bg: #f0f0f0;
+            --input-area-height: 100px;
+            --input-bg: #f8f8f8;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--chat-bg);
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 20px;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            padding-bottom: 20px;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: #000000;
+            align-self: flex-start;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: #000000;
+            align-self: flex-end;
+            border: 1px solid #c8e1ff;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background-color: var(--input-bg);
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            height: var(--input-area-height);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        #user-input::placeholder {
+            color: #999999;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #999999;
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>JBC Chatbot</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                © 2024 JB Connect Ltd
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    document['typing-indicator'].style.display = 'none'
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    document['typing-indicator'].style.display = 'block'
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+    chat_messages.scrollTop = 0
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the JBC chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KUROCO LAB Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f0f4f8;
+            --accent-color: #3abff4;
+            --text-color: #2c3e50;
+            --sidebar-width: 280px;
+            --chat-bg: #ffffff;
+            --user-msg-bg: #e6f3ff;
+            --bot-msg-bg: #f0f0f0;
+            --input-area-height: 100px;
+            --input-bg: #f8f8f8;
+        }
+        
+        body, html {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 28px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-buttons {
+            margin-top: 20px;
+        }
+        
+        .sidebar-buttons button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .sidebar-buttons button:hover {
+            background-color: #98221d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            text-align: center;
+            margin-top: auto;
+            padding-top: 20px;
+            opacity: 0.7;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--chat-bg);
+        }
+        
+        #chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 20px;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            padding-bottom: 20px;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.3s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .bot-message {
+            background-color: var(--bot-msg-bg);
+            color: #000000;
+            align-self: flex-start;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: #000000;
+            align-self: flex-end;
+            border: 1px solid #c8e1ff;
+        }
+        
+        #typing-indicator {
+            padding: 10px;
+            background-color: var(--chat-bg);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        #typing-indicator.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        #user-input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background-color: var(--input-bg);
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            height: var(--input-area-height);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: none;
+            height: 70px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        #user-input::placeholder {
+            color: #999999;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        #send-button {
+            padding: 15px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #999999;
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2>KUROCOLAB BOT</h2>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Documents</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-buttons">
+                <button id="clear-chat"><i class="fas fa-trash"></i> Clear Chat</button>
+                <button id="export-chat"><i class="fas fa-download"></i> Export Chat</button>
+            </div>
+            <div class="copyright">
+                <h4>Ⓒ2024 FREECOMPANY Inc.</h4>
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="typing-indicator" style="display: none;">
+                    <div class="loading-animation">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="user-input-container">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython_stdlib.js"></script>
+
+    <script type="text/python">
+from browser import document, ajax, window
+import json
+
+def on_complete(req):
+    response = json.loads(req.text)
+    add_message(response['response'], 'bot')
+    hide_typing_indicator()
+
+def send_message(event):
+    user_input = document['user-input'].value
+    if user_input.strip() == "":
+        return
+    add_message(user_input, 'user')
+    document['user-input'].value = ""
+    show_typing_indicator()
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_complete)
+    req.open('POST', '/chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'message': user_input}))
+
+def add_message(message, sender):
+    chat_messages = document['chat-messages']
+    new_message = document.createElement('div')
+    new_message.classList.add('message', f'{sender}-message')
+    new_message.innerHTML = message
+    chat_messages.insertBefore(new_message, chat_messages.firstChild)
+    chat_messages.scrollTop = 0
+
+def show_typing_indicator():
+    typing_indicator = document['typing-indicator']
+    typing_indicator.style.display = 'block'
+    # Use setTimeout to ensure the display change has taken effect before adding the 'visible' class
+    window.setTimeout(lambda: typing_indicator.classList.add('visible'), 10)
+
+def hide_typing_indicator():
+    typing_indicator = document['typing-indicator']
+    typing_indicator.classList.remove('visible')
+    # Use setTimeout to wait for the transition to complete before hiding the element
+    window.setTimeout(lambda: setattr(typing_indicator.style, 'display', 'none'), 300)
+
+def clear_chat(event):
+    document['chat-messages'].innerHTML = ''
+
+def export_chat(event):
+    chat_content = document['chat-messages'].innerHTML
+    
+    req = ajax.Ajax()
+    req.bind('complete', on_export_complete)
+    req.open('POST', '/export-chat', True)
+    req.set_header('content-type', 'application/json')
+    req.send(json.dumps({'content': chat_content}))
+
+def on_export_complete(req):
+    if req.status == 200:
+        blob = window.Blob.new([req.text], {'type': 'text/html'})
+        url = window.URL.createObjectURL(blob)
+        a = document.createElement('a')
+        a.href = url
+        a.download = 'chat_export.html'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        
+        content_size = len(req.text) / 1024  # size in KB
+        window.alert(f"Chat exported successfully. Size: {content_size:.2f} KB")
+    else:
+        error_message = json.loads(req.text)['error']
+        window.alert(f"Export failed: {error_message}")
+
+document['send-button'].bind('click', send_message)
+document['user-input'].bind('keypress', lambda event: send_message(event) if event.keyCode == 13 and not event.shiftKey else None)
+document['clear-chat'].bind('click', clear_chat)
+document['export-chat'].bind('click', export_chat)
+
+# Initial bot message
+add_message("Hello! I'm the KUROCO LAB chatbot, your managing director for project implementation. How can I assist you today?", 'bot')
+    </script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            brython();
+        }
+    </script>
+</body>
+</html>
